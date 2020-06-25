@@ -67,7 +67,7 @@ namespace SL_App.SQL
             return tables;
         }
 
-        public SqlResult ExecuteQuerry(string querry)
+        public ISqlResultSet ExecuteQuerry(string querry)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             using (SqlCommand cmd = CreateCommand(querry, connection))
@@ -79,37 +79,62 @@ namespace SL_App.SQL
 
                 SqlResultBuilder builder = SqlResultBuilder.NewInstance(reader.FieldCount);
 
+                //HashSet<string> set = new HashSet<string>();
+
+                for(int i = 0; i < reader.FieldCount; i++)
+                {
+                    string typename = reader.GetDataTypeName(i);
+                    //set.Add(typename);
+                    builder.SetColumnType(i, reader.GetDataTypeName(i));
+                }
+
+                /*foreach(string s in set)
+                {
+                    Console.WriteLine(s);
+                }*/
+
                 for(int i = 0; i < reader.FieldCount; i++)
                 {
                     string name = reader.GetName(i);
-                    Console.WriteLine(name);
                     builder.SetColumnName(i, name);
                 }
 
                 while (reader.Read())
                 {
-                    
+                    builder.PushRow();
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        object val = reader.GetValue(i);
+                        builder.AddValue(val);
+                    }
+                    builder.PopRow();
                 }
+
+                return builder.Build();
             }
-
-            return null;
         }
 
-        public SqlResult ExecuteQuerryFromFile(string filePath)
+        public ISqlResultSet ExecuteParameterizedQuerry(string querry, string[] parameters)
         {
-            string querry = File.ReadAllText(filePath);
-            return ExecuteQuerry(querry);
-        }
-
-        public SqlResult ExectuteParameterizedQuerryFromFile(string filePath, string[] parameters)
-        {
-            string querry = File.ReadAllText(filePath);
-            for(int i = 0; i < parameters.Length; i++)
+            for (int i = 0; i < parameters.Length; i++)
             {
                 string sequence = "{" + i + "}";
-                querry.Replace(sequence, parameters[i]);
+                querry = querry.Replace(sequence, parameters[i]);
             }
+
             return ExecuteQuerry(querry);
+        }
+
+        public ISqlResultSet ExecuteQuerryFromFile(string filePath)
+        {
+            string querry = File.ReadAllText(filePath);
+            return ExecuteQuerry(querry);
+        }
+
+        public ISqlResultSet ExectuteParameterizedQuerryFromFile(string filePath, string[] parameters)
+        {
+            string querry = File.ReadAllText(filePath);
+            return ExecuteParameterizedQuerry(querry, parameters);
         }
 
         public SqlCommand CreateCommandFromFile(string file, SqlConnection connection)

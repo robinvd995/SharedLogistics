@@ -8,11 +8,11 @@ namespace SL_App.SQL
 {
     public struct SqlRow
     {
-        public SqlRow(SqlValue[] values)
+        public SqlRow(ISqlValue[] values)
         {
             Values = values;
         }
 
-        public SqlValue[] Values { get; }
+        public ISqlValue[] Values { get; }
     }
 }

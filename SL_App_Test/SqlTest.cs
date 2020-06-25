@@ -9,9 +9,16 @@ namespace SL_App_Test
     public class SqlTest
     {
         [TestMethod]
-        public void SqlBuilderTest()
+        public void SqlBuilderTestString()
         {
             SqlResultBuilder builder = SqlResultBuilder.NewInstance(5);
+
+            builder.SetColumnType(0, "nvarchar");
+            builder.SetColumnType(1, "nvarchar");
+            builder.SetColumnType(2, "nvarchar");
+            builder.SetColumnType(3, "nvarchar");
+            builder.SetColumnType(4, "nvarchar");
+
             builder.SetColumnName(0, "Col-0");
             builder.SetColumnName(1, "Col-1");
             builder.SetColumnName(2, "Col-2");
@@ -61,6 +68,78 @@ namespace SL_App_Test
                 }
             }
 
+        }
+
+        [TestMethod]
+        public void SqlBuilderTestInt()
+        {
+            SqlResultBuilder builder = SqlResultBuilder.NewInstance(3);
+
+            builder.SetColumnType(0, "int");
+            builder.SetColumnType(1, "int");
+            builder.SetColumnType(2, "int");
+
+            builder.SetColumnName(0, "Col-0");
+            builder.SetColumnName(1, "Col-1");
+            builder.SetColumnName(2, "Col-2");
+
+            builder.PushRow();
+            builder.AddValue(0);
+            builder.AddValue(1);
+            builder.AddValue(2);
+            builder.PopRow();
+
+            builder.PushRow();
+            builder.AddValue(3);
+            builder.AddValue(4);
+            builder.AddValue(5);
+            builder.PopRow();
+
+            ISqlResultSet result = builder.Build();
+
+            Assert.IsTrue(result.GetColumnCount() == 3, "Column count is not equal to 5!");
+            Assert.IsTrue(result.GetRowCount() == 2, "Row count is not equal to 5!");
+
+            Assert.IsTrue(result.GetValue(0, 0).AsInt() == 0);
+            Assert.IsTrue(result.GetValue(1, 0).AsInt() == 1);
+            Assert.IsTrue(result.GetValue(2, 0).AsInt() == 2);
+
+            Assert.IsTrue(result.GetValue(0, 1).AsInt() == 3);
+            Assert.IsTrue(result.GetValue(1, 1).AsInt() == 4);
+            Assert.IsTrue(result.GetValue(2, 1).AsInt() == 5);
+        }
+
+        [TestMethod]
+        public void SqlBuilderTestBit()
+        {
+            SqlResultBuilder builder = SqlResultBuilder.NewInstance(2);
+
+            builder.SetColumnType(0, "bit");
+            builder.SetColumnType(1, "bit");
+
+            builder.SetColumnName(0, "Col-0");
+            builder.SetColumnName(1, "Col-1");
+
+            builder.PushRow();
+            builder.AddValue(0);
+            builder.AddValue(1);
+            builder.PopRow();
+
+            builder.PushRow();
+            builder.AddValue(false);
+            builder.AddValue(true);
+            builder.PopRow();
+
+            ISqlResultSet result = builder.Build();
+
+            Assert.IsTrue(result.GetColumnCount() == 2, "Column count is not equal to 5!");
+            Assert.IsTrue(result.GetRowCount() == 2, "Row count is not equal to 5!");
+
+            Assert.IsTrue(result.GetValue(0, 0).AsBool() == false);
+            Assert.IsTrue(result.GetValue(1, 0).AsBool() == true);
+
+            Assert.IsTrue(result.GetValue(0, 1).AsBool() == false);
+            Assert.IsTrue(result.GetValue(1, 1).AsBool() == true);
         }
     }
 }

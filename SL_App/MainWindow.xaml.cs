@@ -36,12 +36,12 @@ namespace SL_App
             DataContext = new MainWindowVM()
             {
                 TimerText = "Timer: 5m",
-                TableCollection = new ObservableCollection<string>(tables)
+                TableCollection = new ObservableCollection<string>(tables),
+                TableContent = null
+
             };
 
             _timer = new SimpleTimer(1000, true, Execute);
-
-            _sqlManager.ExecuteQuerry("SELECT * FROM dbo.TRITPurchaseOrder");
         }
 
         public static void Execute()
@@ -67,9 +67,63 @@ namespace SL_App
                 _timer.StopTimer();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ShowTableClick(object sender, RoutedEventArgs e)
         {
-            Console.WriteLine(((MainWindowVM)DataContext).SelectedTable);
+            MainWindowVM context = DataContext as MainWindowVM;
+            string selectedTable = context.SelectedTable;
+            ISqlResultSet resultSet = _sqlManager.ExecuteParameterizedQuerry("SELECT * FROM dbo.{0}", new string[] { selectedTable });
+            context.TableContent = CreateGridFromResultSet(resultSet);
+        }
+
+        private Grid CreateGridFromResultSet(ISqlResultSet dataset)
+        {
+            int columns = dataset.GetColumnCount();
+            int rows = dataset.GetRowCount();
+
+            Grid grid = new Grid();
+
+            for (int i = 0; i < columns; i++)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            }
+
+            for (int i = 0; i < rows + 1; i++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+            }
+
+            Thickness partialThickness = new Thickness(0, 0, 1, 1);
+            Thickness topThickness = new Thickness(0, 1, 1, 1);
+            Thickness leftThickness = new Thickness(1, 0, 1, 1);
+            Thickness fullThickness = new Thickness(1, 1, 1, 1);
+
+            for(int i = 0; i < columns; i++)
+            {
+                string colName = dataset.GetColumnName(i);
+                Border border = new Border() { BorderBrush = Brushes.Black, BorderThickness = i == 0 ? fullThickness : topThickness, Background = Brushes.Gray };
+                border.SetValue(Grid.ColumnProperty, i);
+                border.SetValue(Grid.RowProperty, 0);
+                TextBlock textBlock = new TextBlock() { Text = colName, Padding = new Thickness(5) };
+                border.Child = textBlock;
+                grid.Children.Add(border);
+            }
+
+            for (int i = 0; i < columns; i++)
+            {
+                for(int j = 0; j < rows; j++)
+                {
+                    Border border = new Border() { BorderBrush = Brushes.Black, BorderThickness = i == 0 ? leftThickness : partialThickness };
+                    border.SetValue(Grid.ColumnProperty, i);
+                    border.SetValue(Grid.RowProperty, j + 1);
+
+                    string text = dataset.GetValue(i, j).AsString();
+                    TextBlock textBlock = new TextBlock() { Text = text, Padding = new Thickness(5) };
+                    border.Child = textBlock;
+                    grid.Children.Add(border);
+                }
+            }
+            
+            return grid;
         }
     }
 }

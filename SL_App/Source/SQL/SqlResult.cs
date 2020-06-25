@@ -13,7 +13,7 @@ namespace SL_App.SQL
         string GetColumnName(int index);
         int GetRowCount();
         SqlRow GetRow(int index);
-        SqlValue GetValue(int column, int row);
+        ISqlValue GetValue(int column, int row);
     }
 
     public class SqlResult : ISqlResultSet
@@ -37,7 +37,7 @@ namespace SL_App.SQL
             _columnNames = columnNames;
         }
 
-        public void AddRow(int index, SqlValue[] row)
+        public void AddRow(int index, ISqlValue[] row)
         {
             _rows[index] = new SqlRow(row);
         }
@@ -72,17 +72,17 @@ namespace SL_App.SQL
             }
             else
             {
-                SqlValue[] dummyValues = new SqlValue[_columnCount];
+                ISqlValue[] dummyValues = new ISqlValue[_columnCount];
                 for(int i = 0; i < _columnCount; i++)
                 {
-                    dummyValues[i] = new SqlValue("NULL");
+                    dummyValues[i] = new SqlValueString("NULL");
                 }
 
                 return new SqlRow(dummyValues);
             }
         }
 
-        public SqlValue GetValue(int column, int row)
+        public ISqlValue GetValue(int column, int row)
         {
             if(column < _columnCount && row < _rowCount)
             {
@@ -91,7 +91,7 @@ namespace SL_App.SQL
             }
             else
             {
-                return new SqlValue("NULL");
+                return new SqlValueString("NULL");
             }
         }
     }

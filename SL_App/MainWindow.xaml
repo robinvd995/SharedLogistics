@@ -7,7 +7,7 @@
         xmlns:vm="clr-namespace:SL_App.ViewModels"
         mc:Ignorable="d"
         Closed="WindowClosed"
-        Title="MainWindow" Height="600" Width="800">
+        Title="MainWindow" Height="900" Width="1600">
 
     <Window.DataContext>
         <vm:MainWindowVM/>
@@ -17,7 +17,7 @@
         <DockPanel LastChildFill="True" DockPanel.Dock="Top" Height="30" Margin="4">
             <Label DockPanel.Dock="Left" Content="Email:"/>
             <Button DockPanel.Dock="Right" Content="Confirm" Width="100" Height="30"/>
-            <TextBox Height="30" Margin="2 0"/>
+            <TextBox VerticalContentAlignment="Center" Margin="2 0" Padding="4"/>
         </DockPanel>
         <DockPanel DockPanel.Dock="Bottom" Height="30">
             <Border BorderBrush="LightGray" BorderThickness="0 1 0 0">
@@ -36,11 +36,13 @@
                     </Grid.ColumnDefinitions>
                     <DockPanel LastChildFill="True" HorizontalAlignment="Stretch">
                         <Label DockPanel.Dock="Top" Content="Tables:" Background="LightGray" BorderBrush="Gray" BorderThickness="1"/>
-                        <Button DockPanel.Dock="Bottom" Content="Show Data" Height="24" Margin="0" Click="Button_Click"/>
+                        <Button DockPanel.Dock="Bottom" Content="Show Data" Height="24" Margin="0" Click="ShowTableClick"/>
                         <ListBox Grid.Column="0" BorderBrush="Gray" BorderThickness="1 0" ItemsSource="{Binding Path=TableCollection}" SelectedItem="{Binding Path=SelectedTable}"/>
                     </DockPanel>
                     <GridSplitter Grid.Column="1" Width="2" HorizontalAlignment="Stretch"/>
-                    <StackPanel Grid.Column="2"/>
+                    <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="Auto">
+                        <ContentControl Content="{Binding Path=TableContent}"/>
+                    </ScrollViewer>
                 </Grid>
             </Border>
         </DockPanel>
