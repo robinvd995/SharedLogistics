@@ -1,0 +1,3 @@
+{
+  "SharedLogistics": [ "TRITItem", "TRITItemDimensions", "TRITPurchaseOrder", "TRITShipment" ]
+}

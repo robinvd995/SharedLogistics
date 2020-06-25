@@ -58,8 +58,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Source\SqlManager.cs" />
+    <Compile Include="Source\SQL\SqlManager.cs" />
+    <Compile Include="Source\SQL\SqlResult.cs" />
+    <Compile Include="Source\SQL\SqlResultBuilder.cs" />
+    <Compile Include="Source\SQL\SqlRow.cs" />
     <Compile Include="Source\Timer.cs" />
+    <Compile Include="Source\ViewModels\MainWindowVM.cs" />
+    <Compile Include="Source\SQL\SqlValue.cs" />
+    <Compile Include="Source\ViewModels\ViewModelBase.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,6 +103,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="tables.json" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -107,6 +114,8 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>copy $(ProjectDir)connections.json $(ProjectDir)$(OutDir)</PreBuildEvent>
+    <PreBuildEvent>copy $(ProjectDir)connections.json $(ProjectDir)$(OutDir)
+copy $(ProjectDir)tables.json $(ProjectDir)$(OutDir)
+copy $(SolutionDir)SL_SQL\GetAllTables.sql $(ProjectDir)$(OutDir)</PreBuildEvent>
   </PropertyGroup>
 </Project>

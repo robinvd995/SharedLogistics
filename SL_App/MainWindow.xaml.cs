@@ -1,5 +1,8 @@
-﻿using System;
+﻿using SL_App.ViewModels;
+using SL_App.SQL;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,9 +31,17 @@ namespace SL_App
             InitializeComponent();
 
             _sqlManager = new SqlManager();
-            _sqlManager.Connect("SharedLogistics");
+            IEnumerable<string> tables = _sqlManager.Connect("SharedLogistics");
+
+            DataContext = new MainWindowVM()
+            {
+                TimerText = "Timer: 5m",
+                TableCollection = new ObservableCollection<string>(tables)
+            };
 
             _timer = new SimpleTimer(1000, true, Execute);
+
+            _sqlManager.ExecuteQuerry("SELECT * FROM dbo.TRITPurchaseOrder");
         }
 
         public static void Execute()
@@ -54,6 +65,11 @@ namespace SL_App
         {
             if (_timer.IsRunning)
                 _timer.StopTimer();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine(((MainWindowVM)DataContext).SelectedTable);
         }
     }
 }
