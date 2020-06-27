@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SL_App.HTML;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq;
@@ -14,9 +15,10 @@ namespace SL_App.SQL
         int GetRowCount();
         SqlRow GetRow(int index);
         ISqlValue GetValue(int column, int row);
+        int ColumnIndexOf(string columnName);
     }
 
-    public class SqlResult : ISqlResultSet
+    public class SqlResult : ISqlResultSet, IHTMLTableSchema
     {
         private SqlRow[] _rows;
         private string[] _columnNames;
@@ -93,6 +95,25 @@ namespace SL_App.SQL
             {
                 return new SqlValueString("NULL");
             }
+        }
+
+        public int ColumnIndexOf(string columnName)
+        {
+            if (columnName == null || columnName.Length == 0)
+                return -1;
+
+            for(int i = 0; i < _columnCount; i++)
+            {
+                if (_columnNames[i].Equals(columnName))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        public string GetValueAsString(int column, int row)
+        {
+            return GetValue(column, row).AsString();
         }
     }
 }

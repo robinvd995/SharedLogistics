@@ -34,7 +34,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Office.Interop.Outlook, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Office.Interop.Outlook.15.0.4797.1003\lib\net20\Microsoft.Office.Interop.Outlook.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -58,6 +65,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="EmailWindow.xaml.cs">
+      <DependentUpon>EmailWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Enumeration.cs" />
+    <Compile Include="Source\HTML\HTMLBuilder.cs" />
+    <Compile Include="Source\HTML\HTMLControl.cs" />
+    <Compile Include="Source\HTML\HTMLElement.cs" />
+    <Compile Include="Source\HTML\HTMLParser.cs" />
+    <Compile Include="Source\HTML\HTMLUtility.cs" />
+    <Compile Include="Source\OutlookEmail.cs" />
     <Compile Include="Source\SQL\SqlManager.cs" />
     <Compile Include="Source\SQL\SqlResult.cs" />
     <Compile Include="Source\SQL\SqlResultBuilder.cs" />
@@ -66,6 +83,10 @@
     <Compile Include="Source\ViewModels\MainWindowVM.cs" />
     <Compile Include="Source\SQL\SqlValue.cs" />
     <Compile Include="Source\ViewModels\ViewModelBase.cs" />
+    <Page Include="EmailWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,13 +118,11 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="connections.json" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="tables.json" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -114,8 +133,13 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>copy $(ProjectDir)connections.json $(ProjectDir)$(OutDir)
-copy $(ProjectDir)tables.json $(ProjectDir)$(OutDir)
-copy $(SolutionDir)SL_SQL\GetAllTables.sql $(ProjectDir)$(OutDir)</PreBuildEvent>
+    <PreBuildEvent>if not exist $(ProjectDir)$(OutDir)\Sql mkdir $(ProjectDir)$(OutDir)\Sql
+if not exist $(ProjectDir)$(OutDir)\Settings mkdir $(ProjectDir)$(OutDir)\Settings
+if not exist $(ProjectDir)$(OutDir)\Html mkdir $(ProjectDir)$(OutDir)\Html
+
+copy $(ProjectDir)\Sql\* $(ProjectDir)$(OutDir)\Sql\
+copy $(ProjectDir)\Settings\* $(ProjectDir)$(OutDir)\Settings\
+copy $(ProjectDir)\Html\* $(ProjectDir)$(OutDir)\Html\
+</PreBuildEvent>
   </PropertyGroup>
 </Project>

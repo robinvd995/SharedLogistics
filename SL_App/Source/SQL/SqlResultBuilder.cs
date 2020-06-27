@@ -47,6 +47,7 @@ namespace SL_App.SQL
         {
             var dic = GetTypeDictionary();
             bool success = dic.TryGetValue(type, out Func<object, ISqlValue> func);
+            Console.WriteLine(type);
             if (success && index < _columnCount)
             {
                 _columnTypes[index] = new ColumnTypeWrapper(type, func);
@@ -110,6 +111,8 @@ namespace SL_App.SQL
             {
                 { "bit", CreateSqlValueBit },
                 { "int", CreateSqlValueInt32 },
+                { "bigint", CreateSqlValueBigInt },
+                { "varchar", CreateSqlValueString },
                 { "nvarchar", CreateSqlValueString },
                 { "date", CreateSqlValueDateTime },
                 { "time", CreateSqlValueDateTime },
@@ -152,6 +155,18 @@ namespace SL_App.SQL
             else
             {
                 return new SqlValueInt((int)value);
+            }
+        }
+
+        private ISqlValue CreateSqlValueBigInt(object value)
+        {
+            if (value == null || value is DBNull)
+            {
+                return new SqlValueInt(null);
+            }
+            else
+            {
+                return new SqlValueLong((long)value);
             }
         }
 

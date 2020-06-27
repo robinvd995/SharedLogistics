@@ -32,6 +32,7 @@ namespace SL_App
         public void StartTimer()
         {
             _thread = new Thread(Run);
+            _thread.SetApartmentState(ApartmentState.STA);
             _thread.Start();
             IsRunning = true;
         }

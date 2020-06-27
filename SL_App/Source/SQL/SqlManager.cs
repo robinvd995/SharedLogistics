@@ -31,7 +31,7 @@ namespace SL_App.SQL
                 return tables;
             }
 
-            string json = File.ReadAllText("connections.json");
+            string json = File.ReadAllText(App.SETTINGS_DIR + "connections.json");
             var connections = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
 
             bool success = connections.TryGetValue(connectionId, out string connectionString);
@@ -65,6 +65,17 @@ namespace SL_App.SQL
             }
 
             return tables;
+        }
+
+        public int ExecuteWithoutResult(string querry)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = CreateCommand(querry, connection))
+            {
+                connection.Open();
+                cmd.Prepare();
+                return cmd.ExecuteNonQuery();
+            }
         }
 
         public ISqlResultSet ExecuteQuerry(string querry)
@@ -152,7 +163,7 @@ namespace SL_App.SQL
         {
             List<string> tables = null;
 
-            using (SqlCommand cmd = CreateCommandFromFile("GetAllTables.sql", connection))
+            using (SqlCommand cmd = CreateCommandFromFile("Sql/GetAllTables.sql", connection))
             {
                 cmd.Prepare();
                 SqlDataReader reader = cmd.ExecuteReader();
@@ -167,7 +178,7 @@ namespace SL_App.SQL
 
         private List<string> GetTablesFromJson(string connectionId)
         {
-            string json = File.ReadAllText("tables.json");
+            string json = File.ReadAllText(App.SETTINGS_DIR + "tables.json");
             var tableDic = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(json);
             bool success = tableDic.TryGetValue(connectionId, out string[] tableData);
 

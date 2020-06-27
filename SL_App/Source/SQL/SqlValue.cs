@@ -12,6 +12,7 @@ namespace SL_App.SQL
         bool? AsBool();
         int? AsInt();
         double? AsDouble();
+        long? AsLong();
     }
 
     public class SqlValueString : ISqlValue
@@ -34,6 +35,11 @@ namespace SL_App.SQL
         }
 
         public int? AsInt()
+        {
+            return 0;
+        }
+
+        public long? AsLong()
         {
             return 0;
         }
@@ -67,6 +73,11 @@ namespace SL_App.SQL
             return !_value.HasValue ? null : (int?)(_value.Value ? 1 : 0);
         }
 
+        public long? AsLong()
+        {
+            return (long?)AsInt();
+        }
+
         public string AsString()
         {
             return !_value.HasValue ? "NULL" : (_value.Value ? "TRUE" : "FALSE");
@@ -97,6 +108,11 @@ namespace SL_App.SQL
             return _value;
         }
 
+        public long? AsLong()
+        {
+            return (long?)AsInt();
+        }
+
         public string AsString()
         {
             return !_value.HasValue ? "NULL" : (_value.Value.ToString());
@@ -125,6 +141,46 @@ namespace SL_App.SQL
         public int? AsInt()
         {
             return !_value.HasValue ? null : (int?)_value;
+        }
+
+        public long? AsLong()
+        {
+            return (long?)AsInt();
+        }
+
+        public string AsString()
+        {
+            return !_value.HasValue ? "NULL" : (_value.Value.ToString());
+        }
+    }
+
+    public class SqlValueLong : ISqlValue
+    {
+        private long? _value;
+
+        public SqlValueLong(long? value)
+        {
+            _value = value;
+        }
+
+        public bool? AsBool()
+        {
+            return !_value.HasValue ? null : (bool?)(_value.Value == 0 ? false : true);
+        }
+
+        public double? AsDouble()
+        {
+            return !_value.HasValue ? null : (double?)_value;
+        }
+
+        public int? AsInt()
+        {
+            return !_value.HasValue ? null : (int?)_value;
+        }
+
+        public long? AsLong()
+        {
+            return _value;
         }
 
         public string AsString()

@@ -1,5 +1,3 @@
-USE [fmsD4PL]
-GO
 SELECT TRITItemDimensions.ID,
        TRITItemDimensions.DIMENSIONS_NO,
        TRITItemDimensions.ITEM_REF,

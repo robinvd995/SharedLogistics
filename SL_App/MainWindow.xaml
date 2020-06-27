@@ -14,11 +14,11 @@
     </Window.DataContext>
 
     <DockPanel LastChildFill="True">
-        <DockPanel LastChildFill="True" DockPanel.Dock="Top" Height="30" Margin="4">
+        <!--<DockPanel LastChildFill="True" DockPanel.Dock="Top" Height="30" Margin="4">
             <Label DockPanel.Dock="Left" Content="Email:"/>
-            <Button DockPanel.Dock="Right" Content="Confirm" Width="100" Height="30"/>
+            <Button DockPanel.Dock="Right" Content="Confirm" Width="100" Height="30" Click="SendEmail"/>
             <TextBox VerticalContentAlignment="Center" Margin="2 0" Padding="4"/>
-        </DockPanel>
+        </DockPanel>-->
         <DockPanel DockPanel.Dock="Bottom" Height="30">
             <Border BorderBrush="LightGray" BorderThickness="0 1 0 0">
                 <StackPanel>
@@ -26,25 +26,34 @@
                 </StackPanel>
             </Border>
         </DockPanel>
-        <DockPanel Margin="4 0 4 4">
-            <Border BorderBrush="LightGray" BorderThickness="1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition MinWidth="200" Width="200"/>
-                        <ColumnDefinition Width="4"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <DockPanel LastChildFill="True" HorizontalAlignment="Stretch">
-                        <Label DockPanel.Dock="Top" Content="Tables:" Background="LightGray" BorderBrush="Gray" BorderThickness="1"/>
-                        <Button DockPanel.Dock="Bottom" Content="Show Data" Height="24" Margin="0" Click="ShowTableClick"/>
-                        <ListBox Grid.Column="0" BorderBrush="Gray" BorderThickness="1 0" ItemsSource="{Binding Path=TableCollection}" SelectedItem="{Binding Path=SelectedTable}"/>
-                    </DockPanel>
-                    <GridSplitter Grid.Column="1" Width="2" HorizontalAlignment="Stretch"/>
-                    <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="Auto">
-                        <ContentControl Content="{Binding Path=TableContent}"/>
-                    </ScrollViewer>
-                </Grid>
-            </Border>
-        </DockPanel>
+        <TabControl Margin="4 4 0 0">
+            <TabItem Header="Tables">
+                <DockPanel Margin="4 0 4 4">
+                    <Border BorderBrush="LightGray" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition MinWidth="200" Width="200"/>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <DockPanel LastChildFill="True" HorizontalAlignment="Stretch">
+                                <Label DockPanel.Dock="Top" Content="Tables:" Background="LightGray" BorderBrush="Gray" BorderThickness="1"/>
+                                <Button DockPanel.Dock="Bottom" Content="Show Data" Height="24" Margin="0" Click="ShowTableClick"/>
+                                <ListBox Grid.Column="0" BorderBrush="Gray" BorderThickness="1 0" ItemsSource="{Binding Path=TableCollection}" SelectedItem="{Binding Path=SelectedTable}"/>
+                            </DockPanel>
+                            <GridSplitter Grid.Column="1" Width="2" HorizontalAlignment="Stretch"/>
+                            <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="Auto">
+                                <ContentControl Content="{Binding Path=TableContent}"/>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Mail">
+                <ScrollViewer>
+                    <ContentControl Content="{Binding Path=EmailContent}"/>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
     </DockPanel>
 </Window>

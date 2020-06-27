@@ -15,6 +15,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using SL_App.HTML;
+using System.IO;
 
 namespace SL_App
 {
@@ -23,15 +25,14 @@ namespace SL_App
     /// </summary>
     public partial class MainWindow : Window
     {
-        private SimpleTimer _timer;
-        private SqlManager _sqlManager;
+        private readonly SimpleTimer _timer;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            _sqlManager = new SqlManager();
-            IEnumerable<string> tables = _sqlManager.Connect("SharedLogistics");
+            App app = Application.Current as App;
+            IEnumerable<string> tables = app.SqlManager.Connect("SharedLogistics");
 
             DataContext = new MainWindowVM()
             {
@@ -41,37 +42,99 @@ namespace SL_App
 
             };
 
-            _timer = new SimpleTimer(1000, true, Execute);
-        }
-
-        public static void Execute()
-        {
-            Console.WriteLine("Hello World!");
-        }
-
-        private void StartTimerClick(object sender, RoutedEventArgs e)
-        {
-            if(!_timer.IsRunning)
+            if (app.Settings.TimerActive)
+            {
+                _timer = new SimpleTimer(app.Settings.TimerInterval * app.Settings.TimerMultiplier, app.Settings.TimerLooping, ExecuteTimer);
                 _timer.StartTimer();
+            }
         }
 
-        private void StopTimerClick(object sender, RoutedEventArgs e)
+        public void ExecuteTimer()
         {
-            if(_timer.IsRunning)
-                _timer.StopTimer();
-        }
+            App app = Application.Current as App;
 
-        private void WindowClosed(object sender, EventArgs e)
-        {
-            if (_timer.IsRunning)
-                _timer.StopTimer();
+            if (app.SqlManager.IsConnected)
+            {
+                // Getting the entries where prealert is 0 / false
+                ISqlResultSet result = app.SqlManager.ExecuteQuerryFromFile("Sql/GetPreAlertFalse.sql");
+                if (result.GetRowCount() == 0)
+                {
+                    Console.WriteLine("Rows affected: 0");
+                    return;
+                }
+
+                HashSet<int> ids = new HashSet<int>();
+                for (int i = 0; i < result.GetRowCount(); i++)
+                {
+                    int? nid = result.GetValue(0, i).AsInt();
+                    if (nid.HasValue)
+                    {
+                        ids.Add(nid.Value);
+                    }
+                }
+
+                // Setting up the email
+                string[] columnNames = new string[]
+                {
+                    "Job Number", "Relation Code", "ETA TIL", "ATA TIL", "Status", "PO Number", "Supplier Name", "Supplier City", "No. of SKU",
+                    "Dims Count", "Line Item", "Pieces", "Total Gross Weight", "Total Netto Weight", "Total Value", "Shipment Ref Number", "Delivery By",
+                    "Origin", "Destination", "Dangerous Goods", "UN Code", "Remarks", "Remarks Internal", "Commodity", "Our Ref", "Exempt No."
+                };
+
+                int[] columnIds = new int[]
+                {
+                    result.ColumnIndexOf("INBOUNDID"), result.ColumnIndexOf("RELATIONCODE"), result.ColumnIndexOf("INBOUNDDATE"), result.ColumnIndexOf("COLLECTIONDATE"),
+                    result.ColumnIndexOf("STATUS_DEFAULT"), result.ColumnIndexOf("PO_NUMBER"), result.ColumnIndexOf("SUPPLIER_NAME"), result.ColumnIndexOf("SUPPLIER_CITY"),
+                    result.ColumnIndexOf("DIMENSIONS_NO")
+                };
+
+                for(int i = 0; i < result.GetRowCount(); i++)
+                {
+                    /*string body = BuildEmailBody(result);
+                    Console.WriteLine(body);
+                    SendEmail(body);*/
+
+                    
+                    int inboundcol = result.ColumnIndexOf("INBOUNDID");
+                    int inboundid = result.GetValue(inboundcol, i).AsInt().Value;
+                    ISqlResultSet itemResult = app.SqlManager.ExectuteParameterizedQuerryFromFile("Sql/ItemLevel.sql", new string[] { inboundid.ToString() });
+
+                    HTMLValueMapper mapper = new HTMLValueMapper();
+                    mapper.ValueMap["ShipmentTable"] = SimpleHTMLTable.FromSqlResult(result, i, 1);
+                    mapper.ValueMap["ItemTable"] = SimpleHTMLTable.FromSqlResult(itemResult);
+
+                    string htmlSource = File.ReadAllText("Html/EmailTemplate.html");
+                    HTMLParser parser = new HTMLParser(htmlSource, mapper);
+                    string parsedSource = parser.Parse();
+                    SendEmail(parsedSource);
+                }
+
+                // updating the prealert to 1 / true
+                StringBuilder conditionBuilder = new StringBuilder();
+
+                int j = 0;
+                foreach (int id in ids)
+                {
+                    conditionBuilder.Append("ID = " + id);
+                    j++;
+                    if (j < ids.Count)
+                    {
+                        conditionBuilder.Append(" OR ");
+                    }
+                }
+
+                string updateQuerry = "UPDATE TRITPurchaseOrder SET PREALERT = 1 WHERE " + conditionBuilder.ToString();
+                int rowsAffected = app.SqlManager.ExecuteWithoutResult(updateQuerry);
+                Console.WriteLine("Rows affected: {0}", rowsAffected);
+            }
         }
 
         private void ShowTableClick(object sender, RoutedEventArgs e)
         {
             MainWindowVM context = DataContext as MainWindowVM;
             string selectedTable = context.SelectedTable;
-            ISqlResultSet resultSet = _sqlManager.ExecuteParameterizedQuerry("SELECT * FROM dbo.{0}", new string[] { selectedTable });
+            App app = Application.Current as App;
+            ISqlResultSet resultSet = app.SqlManager.ExecuteParameterizedQuerry("SELECT * FROM dbo.{0}", new string[] { selectedTable });
             context.TableContent = CreateGridFromResultSet(resultSet);
         }
 
@@ -124,6 +187,18 @@ namespace SL_App
             }
             
             return grid;
+        }
+
+        public void SendEmail(string emailBody)
+        {
+            EmailWindow window = new EmailWindow(emailBody);
+            window.ShowDialog();
+        }
+
+        private void WindowClosed(object sender, EventArgs e)
+        {
+            if (_timer.IsRunning)
+                _timer.StopTimer();
         }
     }
 }
