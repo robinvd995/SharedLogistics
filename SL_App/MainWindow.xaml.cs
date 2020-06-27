@@ -17,6 +17,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SL_App.HTML;
 using System.IO;
+using System.Threading;
 
 namespace SL_App
 {
@@ -25,10 +26,13 @@ namespace SL_App
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static readonly object ThreadLock = new object ();
+
         private readonly SimpleTimer _timer;
 
         public MainWindow()
         {
+            Thread.CurrentThread.Name = "UIThread";
             InitializeComponent();
 
             App app = Application.Current as App;
@@ -50,6 +54,18 @@ namespace SL_App
         }
 
         public void ExecuteTimer()
+        {
+            lock (ThreadLock)
+            {
+                Dispatcher.Invoke((Action)delegate () {
+                    SendEmails();
+                });
+            }
+
+            Console.WriteLine("Releasing!");
+        }
+
+        private void SendEmails()
         {
             App app = Application.Current as App;
 
@@ -89,12 +105,7 @@ namespace SL_App
                 };
 
                 for(int i = 0; i < result.GetRowCount(); i++)
-                {
-                    /*string body = BuildEmailBody(result);
-                    Console.WriteLine(body);
-                    SendEmail(body);*/
-
-                    
+                {              
                     int inboundcol = result.ColumnIndexOf("INBOUNDID");
                     int inboundid = result.GetValue(inboundcol, i).AsInt().Value;
                     ISqlResultSet itemResult = app.SqlManager.ExectuteParameterizedQuerryFromFile("Sql/ItemLevel.sql", new string[] { inboundid.ToString() });
@@ -199,6 +210,11 @@ namespace SL_App
         {
             if (_timer.IsRunning)
                 _timer.StopTimer();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
