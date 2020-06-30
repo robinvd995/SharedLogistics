@@ -47,7 +47,7 @@ namespace SL_App.SQL
         {
             var dic = GetTypeDictionary();
             bool success = dic.TryGetValue(type, out Func<object, ISqlValue> func);
-            Console.WriteLine(type);
+            //Console.WriteLine(type);
             if (success && index < _columnCount)
             {
                 _columnTypes[index] = new ColumnTypeWrapper(type, func);

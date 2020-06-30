@@ -1,6 +1,1 @@
-{
-  "TimerActive": true,
-  "TimerLooping": true,
-  "TimerInterval": 1,
-  "TimerMultiplier": 1000
-}
+{"TimerActive":true,"TimerLooping":true,"TimerInterval":5,"TimerMultiplier":"s","ShowEmailsBeforeSending":true,"EmailAdress":"robinvd95@live.nl","OutlookCreateAttempts":10,"EmailCreateAttempts":10,"OutlookThreadSleepTime":300,"EmailThreadSleepTime":300}

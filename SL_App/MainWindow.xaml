@@ -16,8 +16,8 @@
     <DockPanel LastChildFill="True">
         <DockPanel LastChildFill="True" DockPanel.Dock="Top" Height="30" Margin="4">
             <Label DockPanel.Dock="Left" Content="Email:"/>
-            <Button DockPanel.Dock="Right" Content="Confirm" Width="100" Height="30" Click="Button_Click"/>
-            <TextBox VerticalContentAlignment="Center" Margin="2 0" Padding="4"/>
+            <Button DockPanel.Dock="Right" Content="Confirm" Width="100" Height="30" Click="ConfirmEmailClick"/>
+            <TextBox VerticalContentAlignment="Center" Text="{Binding Path=EmailAdress}" Margin="2 0" Padding="4"/>
         </DockPanel>
         <DockPanel DockPanel.Dock="Bottom" Height="30">
             <Border BorderBrush="LightGray" BorderThickness="0 1 0 0">

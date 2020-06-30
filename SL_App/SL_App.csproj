@@ -65,28 +65,26 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="EmailWindow.xaml.cs">
-      <DependentUpon>EmailWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Source\Enumeration.cs" />
+    <Compile Include="Source\Util\Enumeration.cs" />
     <Compile Include="Source\HTML\HTMLBuilder.cs" />
     <Compile Include="Source\HTML\HTMLControl.cs" />
     <Compile Include="Source\HTML\HTMLElement.cs" />
     <Compile Include="Source\HTML\HTMLParser.cs" />
     <Compile Include="Source\HTML\HTMLUtility.cs" />
-    <Compile Include="Source\OutlookEmail.cs" />
+    <Compile Include="Source\Util\Outlook.cs" />
     <Compile Include="Source\SQL\SqlManager.cs" />
     <Compile Include="Source\SQL\SqlResult.cs" />
     <Compile Include="Source\SQL\SqlResultBuilder.cs" />
     <Compile Include="Source\SQL\SqlRow.cs" />
-    <Compile Include="Source\Timer.cs" />
+    <Compile Include="Source\Util\TableTransformer.cs" />
+    <Compile Include="Source\Util\Timer.cs" />
+    <Compile Include="Source\ViewModels\EmailWindowVM.cs" />
     <Compile Include="Source\ViewModels\MainWindowVM.cs" />
     <Compile Include="Source\SQL\SqlValue.cs" />
     <Compile Include="Source\ViewModels\ViewModelBase.cs" />
-    <Page Include="EmailWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
+    <Compile Include="Windows\EmailPreviewWindow.xaml.cs">
+      <DependentUpon>EmailPreviewWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -99,6 +97,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Windows\EmailPreviewWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -136,10 +138,12 @@
     <PreBuildEvent>if not exist $(ProjectDir)$(OutDir)\Sql mkdir $(ProjectDir)$(OutDir)\Sql
 if not exist $(ProjectDir)$(OutDir)\Settings mkdir $(ProjectDir)$(OutDir)\Settings
 if not exist $(ProjectDir)$(OutDir)\Html mkdir $(ProjectDir)$(OutDir)\Html
+if not exist $(ProjectDir)$(OutDir)\Transformers mkdir $(ProjectDir)$(OutDir)\Transformers 
 
 copy $(ProjectDir)\Sql\* $(ProjectDir)$(OutDir)\Sql\
 copy $(ProjectDir)\Settings\* $(ProjectDir)$(OutDir)\Settings\
 copy $(ProjectDir)\Html\* $(ProjectDir)$(OutDir)\Html\
+copy $(ProjectDir)\Transformers\* $(ProjectDir)$(OutDir)\Transformers\
 </PreBuildEvent>
   </PropertyGroup>
 </Project>

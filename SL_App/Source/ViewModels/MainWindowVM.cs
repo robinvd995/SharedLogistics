@@ -11,9 +11,23 @@ namespace SL_App.ViewModels
 {
     public class MainWindowVM : ViewModelBase
     {
+        private string _emailAdress = "";
         private Grid _tableContent = null;
 
         public string TimerText { get; set; }
+
+        public string EmailAdress
+        {
+            get
+            {
+                return _emailAdress;
+            }
+            set
+            {
+                _emailAdress = value;
+                OnPropertyChanged("EmailAdress");
+            }
+        }
 
         public ObservableCollection<string> TableCollection { get; set; }
 

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SL_App
+namespace SL_App.Util
 {
     public class SimpleTimer
     {

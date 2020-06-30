@@ -1,0 +1,24 @@
+{
+    "Columns": {
+        "INBOUNDID": "Job Number",
+        "RELATIONCODE": "Relation Code",
+        "INBOUNDDATE": "ETA TIL",
+        "COLLECTIONDATE": "ATA TIL",
+        "STATUS_DEFAULT": "Status",
+        "PO_NUMBER": "PO Number",
+        "SUPPLIER_NAME": "Supplier Name",
+        "SUPPLIER_CITY": "Supplier City",
+        "LINEITEM": "Line Item",
+        "DIMENSIONS_NO": "Pieces",
+        "DIMWEIGHTPERPO": "Total Gross Weight",
+        "TOTALNETTOWEIGHT": "Total Netto Weight",
+        "TOTALVALUE": "Total Value",
+        "DELIVERYBY": "Delivery By",
+        "ORIGIN": "Origin",
+        "DESTINATION": "Destination",
+        "HAZARDOUS": "Dangerous Goods",
+        "UNCODE": "UN Code",
+        "CONDITIONOFGOODS": "Our Ref",
+        "EXEMPTNO": "Exempt No."
+    }
+}

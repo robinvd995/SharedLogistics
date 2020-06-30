@@ -10,12 +10,12 @@ namespace SL_App_Test
         [TestMethod]
         public void HTMLTableParserTest()
         {
-            HTMLValueMapper mapper = new HTMLValueMapper();
+            /*HTMLValueMapper mapper = new HTMLValueMapper();
             mapper.ValueMap["MainTable"] = new DummySchema();
             mapper.ValueMap["SecondTable"] = new DummySchema();
             HTMLParser parser = new HTMLParser("<html><body>@table ( MainTable ) ;@table(SecondTable);</body></html>", mapper);
             string s = parser.Parse();
-            Console.WriteLine(s);
+            Console.WriteLine(s);*/
         }
 
         public class DummySchema : IHTMLTableSchema

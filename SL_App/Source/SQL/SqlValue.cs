@@ -13,6 +13,7 @@ namespace SL_App.SQL
         int? AsInt();
         double? AsDouble();
         long? AsLong();
+        ISqlValue Copy();
     }
 
     public class SqlValueString : ISqlValue
@@ -48,6 +49,11 @@ namespace SL_App.SQL
         {
             return _value;
         }
+
+        public ISqlValue Copy()
+        {
+            return new SqlValueString(_value);
+        }
     }
 
     public class SqlValueBool : ISqlValue
@@ -81,6 +87,11 @@ namespace SL_App.SQL
         public string AsString()
         {
             return !_value.HasValue ? "NULL" : (_value.Value ? "TRUE" : "FALSE");
+        }
+
+        public ISqlValue Copy()
+        {
+            return new SqlValueBool(_value);
         }
     }
 
@@ -117,6 +128,11 @@ namespace SL_App.SQL
         {
             return !_value.HasValue ? "NULL" : (_value.Value.ToString());
         }
+
+        public ISqlValue Copy()
+        {
+            return new SqlValueInt(_value);
+        }
     }
 
     public class SqlValueDecimal : ISqlValue
@@ -152,6 +168,11 @@ namespace SL_App.SQL
         {
             return !_value.HasValue ? "NULL" : (_value.Value.ToString());
         }
+
+        public ISqlValue Copy()
+        {
+            return new SqlValueDecimal(_value);
+        }
     }
 
     public class SqlValueLong : ISqlValue
@@ -186,6 +207,11 @@ namespace SL_App.SQL
         public string AsString()
         {
             return !_value.HasValue ? "NULL" : (_value.Value.ToString());
+        }
+
+        public ISqlValue Copy()
+        {
+            return new SqlValueLong(_value);
         }
     }
 

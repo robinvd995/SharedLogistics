@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SL_App
+namespace SL_App.Util
 {
     public abstract class Enumeration : IComparable
     {

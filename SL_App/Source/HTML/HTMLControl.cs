@@ -1,6 +1,9 @@
-﻿using System;
+﻿using SL_App.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -17,7 +20,22 @@ namespace SL_App.HTML
 
         }
 
-        public abstract string BuildControl(string[] arguments, HTMLValueMapper mapper);
+        public abstract string BuildControl(string[] arguments, object context);
+
+        public T GetProperty<T>(string propertyId, object context)
+        {
+            PropertyInfo pInfo = context.GetType().GetProperty(propertyId);
+            if (pInfo == null)
+                return default;
+
+            object value = pInfo.GetValue(context);
+            if(value is T t)
+            {
+                return t;
+            }
+
+            return default;
+        }
     }
 
     public class HTMLControlTable : HTMLControl
@@ -28,9 +46,12 @@ namespace SL_App.HTML
 
         }
 
-        public override string BuildControl(string[] arguments, HTMLValueMapper mapper)
+        public override string BuildControl(string[] arguments, object context)
         {
-            IHTMLTableSchema schema = mapper.GetValue<IHTMLTableSchema>(arguments[0]);
+            if (arguments == null || arguments.Length != 1)
+                return "";
+
+            IHTMLTableSchema schema = GetProperty<IHTMLTableSchema>(arguments[0], context);
 
             HTMLBuilder builder = new HTMLBuilder();
 

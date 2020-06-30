@@ -18,6 +18,8 @@ using System.Windows.Shapes;
 using SL_App.HTML;
 using System.IO;
 using System.Threading;
+using SL_App.Util;
+using SL_App.Windows;
 
 namespace SL_App
 {
@@ -26,7 +28,7 @@ namespace SL_App
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static readonly object ThreadLock = new object ();
+        private static readonly object ThreadLock = new object();
 
         private readonly SimpleTimer _timer;
 
@@ -40,15 +42,16 @@ namespace SL_App
 
             DataContext = new MainWindowVM()
             {
-                TimerText = "Timer: 5m",
+                TimerText = string.Format("Timer: {0}{1}", app.Settings.TimerInterval, app.Settings.TimerMultiplier),
                 TableCollection = new ObservableCollection<string>(tables),
-                TableContent = null
+                TableContent = null,
+                EmailAdress = app.Settings.EmailAdress
 
             };
 
             if (app.Settings.TimerActive)
             {
-                _timer = new SimpleTimer(app.Settings.TimerInterval * app.Settings.TimerMultiplier, app.Settings.TimerLooping, ExecuteTimer);
+                _timer = new SimpleTimer(app.Settings.ActualTimerInterval, app.Settings.TimerLooping, ExecuteTimer);
                 _timer.StartTimer();
             }
         }
@@ -57,12 +60,10 @@ namespace SL_App
         {
             lock (ThreadLock)
             {
-                Dispatcher.Invoke((Action)delegate () {
+                Dispatcher.Invoke(delegate () {
                     SendEmails();
                 });
             }
-
-            Console.WriteLine("Releasing!");
         }
 
         private void SendEmails()
@@ -75,9 +76,16 @@ namespace SL_App
                 ISqlResultSet result = app.SqlManager.ExecuteQuerryFromFile("Sql/GetPreAlertFalse.sql");
                 if (result.GetRowCount() == 0)
                 {
-                    Console.WriteLine("Rows affected: 0");
+                    Console.WriteLine("No entries with PreAlert = false found!");
                     return;
                 }
+
+                string json = File.ReadAllText(App.TRANSFORM_DIR + "PurchaseOrder.json");
+                TableTransformer tableTransformer = TableTransformer.FromJson(json);
+                ISqlResultSet transformedResult = tableTransformer.TransformSqlResultSet(result);
+
+                json = File.ReadAllText(App.TRANSFORM_DIR + "Items.json");
+                tableTransformer = TableTransformer.FromJson(json);
 
                 HashSet<int> ids = new HashSet<int>();
                 for (int i = 0; i < result.GetRowCount(); i++)
@@ -89,54 +97,84 @@ namespace SL_App
                     }
                 }
 
-                // Setting up the email
-                string[] columnNames = new string[]
-                {
-                    "Job Number", "Relation Code", "ETA TIL", "ATA TIL", "Status", "PO Number", "Supplier Name", "Supplier City", "No. of SKU",
-                    "Dims Count", "Line Item", "Pieces", "Total Gross Weight", "Total Netto Weight", "Total Value", "Shipment Ref Number", "Delivery By",
-                    "Origin", "Destination", "Dangerous Goods", "UN Code", "Remarks", "Remarks Internal", "Commodity", "Our Ref", "Exempt No."
-                };
+                List<EmailWrapper> emails = new List<EmailWrapper>();
 
-                int[] columnIds = new int[]
+                for (int i = 0; i < result.GetRowCount(); i++)
                 {
-                    result.ColumnIndexOf("INBOUNDID"), result.ColumnIndexOf("RELATIONCODE"), result.ColumnIndexOf("INBOUNDDATE"), result.ColumnIndexOf("COLLECTIONDATE"),
-                    result.ColumnIndexOf("STATUS_DEFAULT"), result.ColumnIndexOf("PO_NUMBER"), result.ColumnIndexOf("SUPPLIER_NAME"), result.ColumnIndexOf("SUPPLIER_CITY"),
-                    result.ColumnIndexOf("DIMENSIONS_NO")
-                };
-
-                for(int i = 0; i < result.GetRowCount(); i++)
-                {              
+                    int idcol = result.ColumnIndexOf("ID");
+                    int colid = result.GetValue(idcol, i).AsInt().Value;
                     int inboundcol = result.ColumnIndexOf("INBOUNDID");
                     int inboundid = result.GetValue(inboundcol, i).AsInt().Value;
                     ISqlResultSet itemResult = app.SqlManager.ExectuteParameterizedQuerryFromFile("Sql/ItemLevel.sql", new string[] { inboundid.ToString() });
+                    ISqlResultSet transformedItemResult = tableTransformer.TransformSqlResultSet(itemResult);
 
-                    HTMLValueMapper mapper = new HTMLValueMapper();
-                    mapper.ValueMap["ShipmentTable"] = SimpleHTMLTable.FromSqlResult(result, i, 1);
-                    mapper.ValueMap["ItemTable"] = SimpleHTMLTable.FromSqlResult(itemResult);
+                    EmailDataContext context = new EmailDataContext
+                    {
+                        ShipmentTable = SimpleHTMLTable.FromSqlResult(transformedResult, i, 1),
+                        ItemTable = SimpleHTMLTable.FromSqlResult(transformedItemResult)
+                    };
 
                     string htmlSource = File.ReadAllText("Html/EmailTemplate.html");
-                    HTMLParser parser = new HTMLParser(htmlSource, mapper);
+                    HTMLParser parser = new HTMLParser(htmlSource)
+                    {
+                        DataContext = context
+                    };
                     string parsedSource = parser.Parse();
-                    SendEmail(parsedSource);
+                    
+                    EmailWrapper emailData = new EmailWrapper
+                    {
+                        ID = colid,
+                        ShouldSend = true,
+                        Receiver = app.Settings.EmailAdress,
+                        Subject = ("PREALERT - OrderID=" + inboundid),
+                        HTMLBody = parsedSource
+                    };
+
+                    emails.Add(emailData);
                 }
 
-                // updating the prealert to 1 / true
-                StringBuilder conditionBuilder = new StringBuilder();
-
-                int j = 0;
-                foreach (int id in ids)
+                if (app.Settings.ShowEmailsBeforeSending)
                 {
-                    conditionBuilder.Append("ID = " + id);
-                    j++;
-                    if (j < ids.Count)
+                    EmailPreviewWindow emailPreviewWindow = new EmailPreviewWindow(emails);
+                    emailPreviewWindow.ShowDialog();
+                }
+
+                HashSet<int> sendIds = new HashSet<int>();
+
+                OutlookApplication application = OutlookApplication.CreateApplication();
+                foreach (EmailWrapper data in emails)
+                {
+                    if (data.ShouldSend)
                     {
-                        conditionBuilder.Append(" OR ");
+                        //Console.WriteLine("EmailData: ID:{0}, TO:{1}, SUBJECT:{2}, SHOULD_SEND:{3}", data.ID, data.Receiver, data.Subject, data.ShouldSend);
+                        bool sent = SendEmail(application, data);
+                        if (sent)
+                        {
+                            sendIds.Add(data.ID);
+                        }
                     }
                 }
 
-                string updateQuerry = "UPDATE TRITPurchaseOrder SET PREALERT = 1 WHERE " + conditionBuilder.ToString();
-                int rowsAffected = app.SqlManager.ExecuteWithoutResult(updateQuerry);
-                Console.WriteLine("Rows affected: {0}", rowsAffected);
+                if (sendIds.Count > 0)
+                {
+                    // updating the prealert to 1 / true
+                    StringBuilder conditionBuilder = new StringBuilder();
+
+                    int j = 0;
+                    foreach (int id in sendIds)
+                    {
+                        conditionBuilder.Append("ID = " + id);
+                        j++;
+                        if (j < sendIds.Count)
+                        {
+                            conditionBuilder.Append(" OR ");
+                        }
+                    }
+
+                    string updateQuerry = "UPDATE TRITPurchaseOrder SET PREALERT = 1 WHERE " + conditionBuilder.ToString();
+                    int rowsAffected = app.SqlManager.ExecuteWithoutResult(updateQuerry);
+                    Console.WriteLine("Rows affected: {0}", rowsAffected);
+                }
             }
         }
 
@@ -171,7 +209,7 @@ namespace SL_App
             Thickness leftThickness = new Thickness(1, 0, 1, 1);
             Thickness fullThickness = new Thickness(1, 1, 1, 1);
 
-            for(int i = 0; i < columns; i++)
+            for (int i = 0; i < columns; i++)
             {
                 string colName = dataset.GetColumnName(i);
                 Border border = new Border() { BorderBrush = Brushes.Black, BorderThickness = i == 0 ? fullThickness : topThickness, Background = Brushes.Gray };
@@ -184,7 +222,7 @@ namespace SL_App
 
             for (int i = 0; i < columns; i++)
             {
-                for(int j = 0; j < rows; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     Border border = new Border() { BorderBrush = Brushes.Black, BorderThickness = i == 0 ? leftThickness : partialThickness };
                     border.SetValue(Grid.ColumnProperty, i);
@@ -196,14 +234,26 @@ namespace SL_App
                     grid.Children.Add(border);
                 }
             }
-            
+
             return grid;
         }
 
-        public void SendEmail(string emailBody)
+        public bool SendEmail(OutlookApplication application, EmailWrapper emailData)
         {
-            EmailWindow window = new EmailWindow(emailBody);
-            window.ShowDialog();
+            bool success = application.CreateEmail(out OutlookEmail email);
+            if (success)
+            {
+                email.SetTo(emailData.Receiver);
+                email.SetSubject(emailData.Subject);
+                email.SetHTMLBody(emailData.HTMLBody);
+                email.SendEmail();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
         }
 
         private void WindowClosed(object sender, EventArgs e)
@@ -212,9 +262,46 @@ namespace SL_App
                 _timer.StopTimer();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ConfirmEmailClick(object sender, RoutedEventArgs e)
         {
+            MainWindowVM context = DataContext as MainWindowVM;
+            App app = Application.Current as App;
 
+            string prevEmail = app.Settings.EmailAdress;
+            if (prevEmail != null && prevEmail.Length > 0 && prevEmail.Equals(context.EmailAdress))
+            {
+                MessageBoxButton button = MessageBoxButton.OK;
+                string caption = "Email Changed";
+                string text = string.Format("Email Adress has not changed!");
+                MessageBoxImage icon = MessageBoxImage.Warning;
+                MessageBox.Show(text, caption, button, icon);
+            }
+            else
+            {
+                app.Settings.EmailAdress = context.EmailAdress;
+                app.SaveSettings();
+
+                MessageBoxButton button = MessageBoxButton.OK;
+                string caption = "Email Changed";
+                string text = string.Format("Email Adress has been changed from {0}, to {1}!", prevEmail, context.EmailAdress);
+                MessageBoxImage icon = MessageBoxImage.Information;
+                MessageBox.Show(text, caption, button, icon);
+            }
         }
+    }
+
+    public class EmailDataContext
+    {
+        public IHTMLTableSchema ShipmentTable { get; set; }
+        public IHTMLTableSchema ItemTable { get; set; }
+    }
+
+    public class EmailWrapper
+    {
+        public int ID { get; set; }
+        public bool ShouldSend { get; set; }
+        public string Receiver { get; set; }
+        public string Subject { get; set; }
+        public string HTMLBody { get; set; }
     }
 }

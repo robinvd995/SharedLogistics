@@ -1,0 +1,15 @@
+{
+    "Columns": {
+        "ID": "ID",
+        "PACKAGETYPE": "Package Type",
+        "ARTICLE": "Article Number",
+        "QUANTITY" : "Quantity",
+        "VALUE": "Value",
+        "CURRENCYCODE": "Currency",
+        "NETTOWEIGHT": "Weight",
+        "LINEITEM": "Line Item",
+        "DANGEROUSGOODS": "DG",
+        "REMARKS": "Remarks",
+        "INBOUNDID": "Job Number"
+    }
+}

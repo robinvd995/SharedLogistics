@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SL_App.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,13 +10,15 @@ namespace SL_App.HTML
     public class HTMLParser
     {
         private string _source;
-        private HTMLValueMapper _valueMapper;
+        //private HTMLValueMapper _valueMapper
 
-        public HTMLParser(string source, HTMLValueMapper mapper)
+        public HTMLParser(string source)
         {
             _source = source;
-            _valueMapper = mapper;
+            //_valueMapper = mapper;
         }
+
+        public object DataContext { get; set; }
 
         public string Parse()
         {
@@ -60,7 +63,8 @@ namespace SL_App.HTML
             {
                 Console.WriteLine(identifier);
                 HTMLControl control = Enumeration.GetAll<HTMLControl>().Where(c => c.Name.Equals(identifier)).First();
-                parsed = control.BuildControl(arguments, _valueMapper);
+                //parsed = control.BuildControl(arguments, _valueMapper);
+                parsed = control.BuildControl(arguments, DataContext);
             }
             catch(Exception e) { Console.WriteLine(e.Message); }
 
