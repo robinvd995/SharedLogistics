@@ -12,7 +12,7 @@ namespace SL_App_Test
         [TestMethod]
         public void JsonReaderTest()
         {
-            string json = "{\"Tables\": { \"INBOUNDID\": \"Job Number\",\"RELATIONCODE\": \"Relation Code\" } }";
+            string json = "{\"Columns\": { \"INBOUNDID\": \"Job Number\",\"RELATIONCODE\": \"Relation Code\" } }";
             TableTransformData data = JsonConvert.DeserializeObject<TableTransformData>(json);
 
             TestHelper.AssertEqualsi(data.Columns.Values.Count, 2);

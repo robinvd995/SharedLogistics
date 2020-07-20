@@ -13,10 +13,7 @@ namespace SL_App.ViewModels
 
         public void OnPropertyChanged(string propname)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propname));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propname));
         }
     }
 }
